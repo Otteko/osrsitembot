@@ -1,5 +1,5 @@
 # osrsitembot
 
-Looks for [items] on /r/2007scape and posts details about them
+Looks for comments containing [items] on /r/2007scape and posts a comment reply with details about [items]
 
-Includes name, description, members status, alch value, GE value, GE limits
+Includes name, examine, members status, alch value, GE value, GE limits
