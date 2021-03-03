@@ -6,4 +6,4 @@ Includes name, examine, members status, alch value, GE value, GE limits
 
 Debug mode: Outputs all responses to Responses.txt in root directory, disables replying to comments.
 
-Responses includes link to parent comment, parent author, time of response, and what it would have responded
+Debug responses includes link to parent comment, parent author, time of response, and what it would have responded
