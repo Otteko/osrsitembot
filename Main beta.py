@@ -12,27 +12,36 @@ class main:
                         "| Item             | Examine text          | Members | HA | LA | GE Price | Limit |\n"
                         "|------------------|-----------------------|:-------:|:----:|:----:|:-------:|:-------:|\n")
         strItems = main.lookup_Items(items)
-        BASE_POST_TABLE = ("\n\nI am a bot, use (playername) or [itemname] in any comment on /r/2007scape to trigger me, "
-                            "some nicknamed items like [tbow] or [76] work! | "
+        BASE_POST_TABLE = ("\n\nI am a bot, use up to 1 (playername) or any number of [itemname]s in any comment on /r/2007scape to trigger me, "
+                            "some nicknamed items like [tbow] or [73] work! | "
                             "[Message my owner](https://www.reddit.com/message/compose?to=swordstoo&subject=osrsitemsbot) | "
                             "Made with [PRAW](https://github.com/praw-dev/praw) | "
-                            "Use !goodbot to give me the good chemicals | "
+                            "Reply with 'good bot' to give me the good chemicals | "
                             "Criticize me on [Github](https://github.com/Otteko/osrsitembot)!")
         return BASE_TABLE + strItems + BASE_POST_TABLE
         
     def lookup_Items(items):
         strItems = ""
         for item in items:
+            print("Parsing item: " + item)
             URL = 'https://oldschool.runescape.wiki/w/' + item.replace(' ', "_")
             page = requests.get(URL)
-            soup = BeautifulSoup(page.content, 'html.parser')
-            strItems = strItems + ("|" + item + "|" +
-                          str(soup.get_text()).split("Examine")[1].split(".")[0] + "|" +
-                          str(soup.get_text()).split("Members")[1].split("Quest")[0] + "|" +
-                          str(soup.get_text()).split("High alch")[1].split(" ")[0] + "gp" + "|" +
-                          str(soup.get_text()).split("Low alch")[1].split(" ")[0] + "gp" + "|" +
-                          str(soup.get_text()).split("ExchangeExchange")[1].split(" ")[0] + "gp" + "|" +
-                          str(soup.get_text()).split("Buy limit")[1].split("Daily")[0] + "|\n")
+            soup = BeautifulSoup(page.content, 'html.parser').get_text()
+            strItems = strItems + ("|" + 
+                                "[" + soup.split("\n\n\n\n")[1].split(" - OSRS Wiki")[0] + "](" + URL + ")" + "|" +
+                                soup.split("Examine")[1].split(".")[0] + "|" +
+                                soup.split("Members")[1].split("Quest")[0] + "|")
+            if "High alch" in soup:
+                strItems = strItems + (soup.split("High alch")[1].split(" coin")[0] + "|" + 
+                                        soup.split("Low alch")[1].split(" coin")[0] + "|")
+            else:
+                strItems = strItems + "Not|Alchable|"
+            if "TradeableYes" in soup:
+                strItems = strItems + (soup.split("ExchangeExchange")[1].split(" coin")[0] + "|" +
+                                        soup.split("Buy limit")[1].split("Daily")[0] + "|")
+            else:
+                strItems = strItems + "Not|tradeable|"
+            strItems = strItems + "\n"
         return strItems
     
     def findItemsInComment(commentString):
@@ -98,16 +107,16 @@ class main:
                 "|---------------|:-----------:|:-----------:|\n")
         minigameTable = main.lookup_player_minigames(highscoreText)
 
-        BASE_POST_TABLE = ("\n\nI am a bot, use (playername) or [itemname] in any comment on /r/2007scape to trigger me, "
-                            "some nicknamed items like [tbow] or [76] work! | "
+        BASE_POST_TABLE = ("\n\nI am a bot, use up to 1 (playername) or any number of [itemname]s in any comment on /r/2007scape to trigger me, "
+                            "some nicknamed items like [tbow] or [73] work! | "
                             "[Message my owner](https://www.reddit.com/message/compose?to=swordstoo&subject=osrsitemsbot) | "
                             "Made with [PRAW](https://github.com/praw-dev/praw) | "
-                            "Say 'Good bot' to give me the good chemicals | "
+                            "Reply with 'good bot' to give me the good chemicals | "
                             "Criticize me on [Github](https://github.com/Otteko/osrsitembot) - open source!")
         return (SKILL_BASE_TABLE + skillsTable + MINIGAME_BASE_TABLE + minigameTable + BASE_POST_TABLE)
 
     def lookup_player_skills(highscoreText):
-        skillsText = highscoreText.split("\nMinigame")[0]
+        skillsText = highscoreText.split("\nMinigame")[0] + "\n\n\n\n" #Extra \n due to parsing cutting off lines
         skillName = []
         rank = []
         level = []
@@ -165,8 +174,8 @@ class main:
 
 
     def parse_comment(comment):
-        print("\n####### New comment found ######## Link: https://www.reddit.com" + comment.permalink + "\n")
-
+        #print("\n####### New comment found ######## Link: https://www.reddit.com" + comment.permalink + "\n")
+        #Todo: Fix last skill getting cut off
         if str(comment.author.name) != "osrsitembot":
             commentBody = comment.body
 
@@ -194,7 +203,7 @@ if __name__ == '__main__':
     # Create Bot with methods to parse comments
     bot = CommentBot(reddit=reddit,
                     func_comment=main.parse_comment,
-                    subreddits=['2007scape'])
+                    subreddits=['swordstoo'])
 
     # Start Bot
     if main.yes_or_no("Turn on debug mode? (Print to file only)"):
